@@ -1,0 +1,42 @@
+services:
+  llama-server:
+    image: fradevi04/llama-kv-stream:1.0
+    container_name: llama-server
+    restart: unless-stopped
+    ports:
+      - "8091:8080"
+    volumes:
+      - /home/fradevi/llama-models:/models:ro
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    runtime: nvidia
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    command: >
+      -m /models/Qwen3.8-27B-UD-IQ4_XS.gguf
+      --mmproj /models/mmproj-BF16.gguf
+      --no-mmproj-offload
+      --temp 1.0
+      --top-p 0.95
+      --top-k 20
+      -fa on
+      -np 1
+      --min-p 0.00
+      --presence-penalty 0.0
+      --repeat-penalty 1.0 
+      --ctx-size 232000
+      --fit off
+      --n-gpu-layers 99
+      --ubatch-size 128
+      --batch-size 512
+      --kv-stream-arena-mib 2304
+      --chat-template-kwargs "{\"preserve_thinking\": true}" 
+      --cache-type-k q8_0 
+      --cache-type-v q8_0
+
+      --host 0.0.0.0
+      --port 8080
